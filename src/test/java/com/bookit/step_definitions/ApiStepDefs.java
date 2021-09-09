@@ -12,6 +12,9 @@ import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
 import org.junit.Assert;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
@@ -19,8 +22,9 @@ import static io.restassured.RestAssured.given;
 public class ApiStepDefs {
 
     String token;
-    Response response;
+    Response response, responseNameRole,responseTeam,responseBatch,responseCampus;
     String emailGlobal;
+
     @Given("I logged Bookit api using {string} and {string}")
     public void i_logged_Bookit_api_using_and(String email, String password) {
 
@@ -60,6 +64,7 @@ public class ApiStepDefs {
 
         Map<String, Object> rowMap = DBUtils.getRowMap(query);
         System.out.println("rowMap = " + rowMap);
+
         long expectedId = (long) rowMap.get("id");
         String expectedFirstName = (String) rowMap.get("firstname");
         String expectedLastName = (String) rowMap.get("lastname");
@@ -78,9 +83,6 @@ public class ApiStepDefs {
         Assert.assertEquals(expectedFirstName,actualFirstName);
         Assert.assertEquals(expectedLastName,actualLastName);
         Assert.assertEquals(expectedRole,actualRole);
-
-
-
 
     }
 
@@ -131,6 +133,70 @@ public class ApiStepDefs {
 
         Assert.assertEquals(actualFullName,actualUIFullName);
         Assert.assertEquals(actualRole,actualUIRole);
+
+    }
+
+
+    @When("I get name,role,team,batch,campus information from api")
+    public void i_get_name_role_team_batch_campus_information_from_api() {
+
+    String url = ConfigurationReader.get("qa2api.uri");
+
+    //get info from api for Name and Role
+         responseNameRole = given().accept(ContentType.JSON)
+                .header("Authorization", token)
+                .when().get(url+"/api/users/me");
+
+        responseTeam = given().accept(ContentType.JSON)
+                .header("Authorization", token)
+                .when().get(url + "/api/teams/my");
+
+        responseBatch=given().accept(ContentType.JSON)
+                .header("Authorization", token)
+                .when().get(url + "/api/batches/my");    //take later, response.path("number")
+
+        responseCampus=given().accept(ContentType.JSON)
+                .header("Authorization", token)
+                .when().get(url + "/api/campuses/my");  // response.path("location")
+    }
+
+    @Then("UI,API and Database user information including team, batch and campus must be match")
+    public void ui_API_and_Database_user_information_including_team_batch_and_campus_must_be_match() {
+        // get info from Database
+
+
+
+
+        
+        //get info from API
+        String nameAPI = responseNameRole.path("firstName") + " " + responseNameRole.path("lastName");
+        String roleAPI = responseNameRole.path("role");
+        String teamAPI = responseTeam.path("name");
+        int batchAPI = responseBatch.path("number");
+        String campusAPI = responseCampus.path("location");
+
+        List<Object> listAPI=new ArrayList<>();
+        listAPI.addAll(Arrays.asList(nameAPI,roleAPI,teamAPI,batchAPI,campusAPI));
+        System.out.println("listAPI = " + listAPI);
+
+
+        // get info from UI
+        SelfPage selfPage=new SelfPage();
+
+        String nameUI = selfPage.name.getText();
+        String roleUI = selfPage.role.getText();
+        String teamUI = selfPage.team.getText();
+        int batchUI = Integer.parseInt(selfPage.batch.getText().substring(1));
+        String campusUI = selfPage.campus.getText();
+
+        List<Object> listUI=new ArrayList<>();
+        listUI.addAll(Arrays.asList(nameUI,roleUI,teamUI,batchUI,campusUI));
+        System.out.println("listUI = " + listUI);
+
+        //compare UI and API
+        Assert.assertEquals(listAPI,listUI);
+
+
 
 
     }

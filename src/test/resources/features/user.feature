@@ -21,7 +21,7 @@ Feature: User Verification
     And I get the current user information from api
     Then UI,API and Database user information must be match
 
-  @wip @db
+  @db
   Scenario Outline:  three point verification(UI,DATABASE,API) DDF
     Given user logs in using "<email>" "<password>"
     When user is on the my self page
@@ -34,5 +34,16 @@ Feature: User Verification
       | sbirdbj@fc2.com      | asenorval    |
       | ccornil1h@usnews.com | corniecornil |
 
+
+    #HOMEWORK
     #get name,role,team,batch,campus information from ui,database and api, compare them
     #you might get in one shot from ui and database, but might need multiple api requests to get those information
+
+  @wip
+  Scenario: Hw for 3 verification
+    Given user logs in using "sbirdbj@fc2.com" "asenorval"
+    When user is on the my self page
+    And I logged Bookit api using "sbirdbj@fc2.com" and "asenorval"
+    And I get name,role,team,batch,campus information from api
+    Then UI,API and Database user information including team, batch and campus must be match
+
