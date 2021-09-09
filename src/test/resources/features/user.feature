@@ -39,7 +39,7 @@ Feature: User Verification
     #get name,role,team,batch,campus information from ui,database and api, compare them
     #you might get in one shot from ui and database, but might need multiple api requests to get those information
 
-  @wip
+  @db @wip
   Scenario: Hw for 3 verification
     Given user logs in using "sbirdbj@fc2.com" "asenorval"
     When user is on the my self page

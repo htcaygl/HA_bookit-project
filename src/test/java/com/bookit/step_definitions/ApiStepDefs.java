@@ -4,12 +4,14 @@ import com.bookit.pages.SelfPage;
 import com.bookit.utilities.BookItApiUtils;
 import com.bookit.utilities.ConfigurationReader;
 import com.bookit.utilities.DBUtils;
+import io.cucumber.datatable.dependency.com.fasterxml.jackson.annotation.JsonTypeInfo;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.restassured.http.ContentType;
 import io.restassured.path.json.JsonPath;
 import io.restassured.response.Response;
+import org.jsoup.helper.DataUtil;
 import org.junit.Assert;
 
 import java.util.ArrayList;
@@ -162,12 +164,22 @@ public class ApiStepDefs {
 
     @Then("UI,API and Database user information including team, batch and campus must be match")
     public void ui_API_and_Database_user_information_including_team_batch_and_campus_must_be_match() {
+
         // get info from Database
+        String query="select users.id,firstname,lastname, role,team.name,team.batch_number,campus.location from\n" +
+                "users join campus on users.campus_id=campus.id\n" +
+                "join team on users.team_id=team.id\n" +
+                "where users.email='"+emailGlobal+"';";
+
+        Map<String,Object> mapDB= DBUtils.getRowMap(query);
+
+        List<Object> listDB=new ArrayList<>();
+        listDB.addAll(Arrays.asList(mapDB.get("firstname")+" "+mapDB.get("lastname"), mapDB.get("role"), mapDB.get("name"),
+                                                    mapDB.get("batch_number"),mapDB.get("location")));
+
+        System.out.println("listDB = " + listDB);
 
 
-
-
-        
         //get info from API
         String nameAPI = responseNameRole.path("firstName") + " " + responseNameRole.path("lastName");
         String roleAPI = responseNameRole.path("role");
@@ -195,6 +207,8 @@ public class ApiStepDefs {
 
         //compare UI and API
         Assert.assertEquals(listAPI,listUI);
+        //compare UI and DB
+        Assert.assertEquals(listDB,listUI);
 
 
 
